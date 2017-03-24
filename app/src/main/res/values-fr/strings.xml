@@ -1,0 +1,12 @@
+<resources>
+
+    <string name="navigation_drawer_open">Ouvrir menu</string>
+    <string name="navigation_drawer_close">Fermer menu</string>
+
+    <string name="action_settings">Réglages</string>
+
+    <string name="logout">Déconnexion</string>
+    <string name="profile_picture">Photo de profil</string>
+    <string name="exit_confirmation">Voulez-vous vraiment quitter ?</string>
+    <string name="really_exit">Quitter ?</string>
+</resources>

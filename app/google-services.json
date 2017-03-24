@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1033335446337",
+    "firebase_url": "https://exiapointeuse.firebaseio.com",
+    "project_id": "exiapointeuse",
+    "storage_bucket": "exiapointeuse.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1033335446337:android:a2e4b15584b5cfa1",
+        "android_client_info": {
+          "package_name": "com.antoinedelia.exiapointeuse"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1033335446337-qseff4b1d8a2bnohldf17tca7v3eiul9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.antoinedelia.exiapointeuse",
+            "certificate_hash": "b131c7ab1780497500ab50d4d74b983fba26b926"
+          }
+        },
+        {
+          "client_id": "1033335446337-fc9benbbksij1hnhir2dlcbg2g1nsv28.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNrozsoHulbxWj-ISnIAU4N-e4lqxhACA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1033335446337-fc9benbbksij1hnhir2dlcbg2g1nsv28.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
