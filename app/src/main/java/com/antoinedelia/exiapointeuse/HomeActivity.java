@@ -2,12 +2,14 @@ package com.antoinedelia.exiapointeuse;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,13 +28,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.facebook.login.LoginManager;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
-public class HomeActivity extends Activity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class HomeActivity extends FragmentActivity
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
     private NavigationView navigationView;
+    private GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +76,12 @@ public class HomeActivity extends Activity
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         displayUserInfo(user);
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+
     }
 
     private void backToLoginScreen() {
@@ -124,17 +141,7 @@ public class HomeActivity extends Activity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        if (id == R.id.nav_manage) {
 
         } else if (id == R.id.logout) {
             Log.d("ERROR", "ERROR");
@@ -160,5 +167,18 @@ public class HomeActivity extends Activity
 //            ImageView imageView = (ImageView) findViewById(R.id.facebook_photo);
 //            Picasso.with(HomeActivity.this).load(user.getPhotoUrl()).resize(200, 200).centerInside().into(imageView);
         }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        mMap = map;
+        setUpMap();
+    }
+
+    private void setUpMap() {
+        LatLng cesi = new LatLng(43.548330, 1.502874);
+        mMap.addMarker(new MarkerOptions().position(cesi).title("CESI Toulouse"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cesi, 17.0f));
+        //this.map.moveCamera( CameraUpdateFactory.newLatLngZoom(new LatLng(43.548323,1.502874) , 14.0f) );
     }
 }
