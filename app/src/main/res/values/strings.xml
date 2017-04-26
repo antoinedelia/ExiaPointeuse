@@ -14,6 +14,6 @@
     <string name="distance_from_endpoint">Distance from Cesi : </string>
     <string name="meters">meters.</string>
     <string name="your_position">Your position</string>
-    <string name="too_far_away">You are too far away to point (You have to be less than 1km away)</string>
+    <string name="too_far_away">You are too far away to point (You have to be less than 200 meters away)</string>
     <string name="congratulations">Congratulations! You have arrived at your destination!</string>
 </resources>

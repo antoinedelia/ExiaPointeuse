@@ -48,6 +48,7 @@ public class HomeActivity extends FragmentActivity
     private Location location;
     private final double LATCESI = 43.548330;
     private final double LONCESI = 1.502874;
+    private final double RADIUS_MAX = 200;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -91,7 +92,7 @@ public class HomeActivity extends FragmentActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(distance(location.getLatitude(), LATCESI, location.getLongitude(), LONCESI) > 1000) {
+                if(distance(location.getLatitude(), LATCESI, location.getLongitude(), LONCESI) > RADIUS_MAX) {
                     Snackbar.make(view, getString(R.string.too_far_away), Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
