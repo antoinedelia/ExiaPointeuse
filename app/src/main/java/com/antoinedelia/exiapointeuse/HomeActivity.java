@@ -1,37 +1,38 @@
 package com.antoinedelia.exiapointeuse;
 
-import android.app.Activity;
+import android.Manifest;
 import android.app.AlertDialog;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+
+import android.content.res.Resources;
+import android.location.Location;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.widget.LinearLayoutCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.facebook.login.LoginManager;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -44,7 +45,11 @@ public class HomeActivity extends FragmentActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
     private NavigationView navigationView;
     private GoogleMap mMap;
+    private Location location;
+    private final double LATCESI = 43.548330;
+    private final double LONCESI = 1.502874;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,20 +57,10 @@ public class HomeActivity extends FragmentActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if(user == null)
-        {
+        if (user == null) {
             logout();
             backToLoginScreen();
         }
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -80,6 +75,33 @@ public class HomeActivity extends FragmentActivity
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        ActivityCompat.requestPermissions( this, new String[] {  android.Manifest.permission.ACCESS_COARSE_LOCATION  }, 1 );
+        ActivityCompat.requestPermissions( this, new String[] {  Manifest.permission.ACCESS_FINE_LOCATION  }, 1 );
+
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED){return;}
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED){return;}
+        location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        double longitude = location.getLongitude();
+        double latitude = location.getLatitude();
+        Log.d("LAT", String.valueOf(latitude));
+        Log.d("LON", String.valueOf(longitude));
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(distance(location.getLatitude(), LATCESI, location.getLongitude(), LONCESI) > 1000) {
+                    Snackbar.make(view, getString(R.string.too_far_away), Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+                else
+                {
+                    Snackbar.make(view, getString(R.string.congratulations), Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+            }
+        });
 
 
     }
@@ -176,9 +198,36 @@ public class HomeActivity extends FragmentActivity
     }
 
     private void setUpMap() {
-        LatLng cesi = new LatLng(43.548330, 1.502874);
-        mMap.addMarker(new MarkerOptions().position(cesi).title("CESI Toulouse"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cesi, 17.0f));
+        LatLng cesi = new LatLng(LATCESI, LONCESI);
+        mMap.addMarker(new MarkerOptions().position(cesi).title("CESI Toulouse")).showInfoWindow();
+
+        LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        mMap.addMarker(new MarkerOptions().position(currentLocation).title(getString(R.string.your_position))).showInfoWindow();
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17.0f));
+        TextView textView = (TextView)findViewById(R.id.distance);
+        textView.setText(String.valueOf(distance(location.getLatitude(), LATCESI, location.getLongitude(), LONCESI)));
         //this.map.moveCamera( CameraUpdateFactory.newLatLngZoom(new LatLng(43.548323,1.502874) , 14.0f) );
+    }
+
+    /**
+     * Calculate distance between two points in latitude and longitude
+     *
+     * lat1, lon1 Start point lat2, lon2 End point
+     * @returns Distance in Meters
+     */
+    public static double distance(double lat1, double lat2, double lon1, double lon2) {
+
+        final int R = 6371; // Radius of the earth
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = R * c * 1000; // convert to meters
+
+        distance = Math.pow(distance, 2);
+        return Math.round(Math.sqrt(distance)*100.0)/100.0;
     }
 }

@@ -9,4 +9,10 @@
     <string name="profile_picture">Photo de profil</string>
     <string name="exit_confirmation">Voulez-vous vraiment quitter ?</string>
     <string name="really_exit">Quitter ?</string>
+    <string name="distance_from_endpoint">Distance du Cesi : </string>
+    <string name="meters">metres.</string>
+    <string name="your_position">Votre position</string>
+    <string name="too_far_away">Vous êtes trop loin pour pointer (Vous devez être à moins d\'un kilomètre)</string>
+    <string name="congratulations">Bravo ! Vous êtes arrivés et vous avez pointé !</string>
+
 </resources>
