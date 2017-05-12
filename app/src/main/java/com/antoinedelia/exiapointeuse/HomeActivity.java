@@ -35,6 +35,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -207,6 +208,12 @@ public class HomeActivity extends FragmentActivity
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17.0f));
         TextView textView = (TextView)findViewById(R.id.distance);
         textView.setText(String.valueOf(distance(location.getLatitude(), LATCESI, location.getLongitude(), LONCESI)));
+
+        mMap.addCircle(new CircleOptions()
+            .center(cesi)
+            .radius(RADIUS_MAX)
+            .strokeWidth(0f)
+            .fillColor(0x550000FF));
         //this.map.moveCamera( CameraUpdateFactory.newLatLngZoom(new LatLng(43.548323,1.502874) , 14.0f) );
     }
 
