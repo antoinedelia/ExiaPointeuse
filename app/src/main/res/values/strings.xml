@@ -11,9 +11,11 @@
     <string name="profile_picture">Profile picture</string>
     <string name="exit_confirmation">Are you sure you want to exit?</string>
     <string name="really_exit">Really Exit?</string>
-    <string name="distance_from_endpoint">Distance from Cesi : </string>
-    <string name="meters">meters.</string>
+    <string name="distance_from_endpoint">Distance from Cesi :&#160;</string>
+    <string name="meters">&#160;meters.</string>
     <string name="your_position">Your position</string>
     <string name="too_far_away">You are too far away to point (You have to be less than 200 meters away)</string>
     <string name="congratulations">Congratulations! You have arrived at your destination!</string>
+    <string name="center">Center position</string>
+    <string name="lastUpdate">Last update :&#160;</string>
 </resources>
