@@ -16,5 +16,8 @@
     <string name="congratulations">Bravo ! Vous êtes arrivés et vous avez pointé !</string>
     <string name="center">Centrer la position</string>
     <string name="lastUpdate">Dernière mise à jour :&#160;</string>
-
+    <string name="greetings">Bonjour.</string>
+    <string name="checkin">Je viens d\'arriver à&#160;</string>
+    <string name="regards">Cordialement.</string>
+    <string name="sms_denied">Pas l\'autorisation d\'envoyer des sms</string>
 </resources>

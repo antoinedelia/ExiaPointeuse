@@ -18,4 +18,8 @@
     <string name="congratulations">Congratulations! You have arrived at your destination!</string>
     <string name="center">Center position</string>
     <string name="lastUpdate">Last update :&#160;</string>
+    <string name="greetings">Hello.</string>
+    <string name="checkin">I just arrived at the location at&#160;</string>
+    <string name="regards">Regards.</string>
+    <string name="sms_denied">Permission to send SMS denied</string>
 </resources>

@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 
-import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -21,6 +20,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -46,7 +46,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -61,7 +60,11 @@ import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
+import java.util.Objects;
 
 public class HomeActivity extends FragmentActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -76,6 +79,8 @@ public class HomeActivity extends FragmentActivity
     private final double LATCESI = 43.548330;
     private final double LONCESI = 1.502874;
     private final double RADIUS_MAX = 200;
+    private final String PHONE_NUMBER = "+33624748001";
+    private final String MAIL = "r.bello@viacesi.fr";
     final static int REQUEST_LOCATION = 199;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -85,7 +90,7 @@ public class HomeActivity extends FragmentActivity
         setContentView(R.layout.activity_home);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             logout();
             backToLoginScreen();
@@ -114,8 +119,9 @@ public class HomeActivity extends FragmentActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        ActivityCompat.requestPermissions( this, new String[] {  android.Manifest.permission.ACCESS_COARSE_LOCATION  }, 1 );
-        ActivityCompat.requestPermissions( this, new String[] {  Manifest.permission.ACCESS_FINE_LOCATION  }, 1 );
+        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.SEND_SMS}, 1);
 
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED){return;}
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED){return;}
@@ -143,13 +149,50 @@ public class HomeActivity extends FragmentActivity
                 }
                 else
                 {
-                    Snackbar.make(view, getString(R.string.congratulations), Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss / dd-MM-yyyy", Locale.getDefault());
+                    String currentDateAndTime = sdf.format(new Date());
+                    String message = Objects.toString(user.getDisplayName()+"\n", "") + getString(R.string.greetings) + "\n" + getString(R.string.checkin) + currentDateAndTime + "\n" + getString(R.string.regards);
+
+                    // Code to send SMS
+                    if(sendSMS(message)){
+                        Snackbar.make(view, getString(R.string.congratulations), Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }
+                    else{
+                        ActivityCompat.requestPermissions(HomeActivity.this, new String[] {Manifest.permission.SEND_SMS}, 1);
+                    }
+
+                    // Code to send mail
+                    //sendMail("", message);
                 }
             }
         });
+    }
 
+    private boolean sendSMS(String message){
+        if(ContextCompat.checkSelfPermission(HomeActivity.this, Manifest.permission.SEND_SMS ) != PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(HomeActivity.this, getString(R.string.sms_denied), Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        else{
+            SmsManager sm = SmsManager.getDefault();
+            ArrayList<String> parts = sm.divideMessage(message);
+            sm.sendMultipartTextMessage(PHONE_NUMBER, null, parts,  null, null);
+            return true;
+        }
+    }
 
+    private void sendMail(String subject, String message) {
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.setType("message/rfc822");
+        i.putExtra(Intent.EXTRA_EMAIL  , new String[]{MAIL});
+        i.putExtra(Intent.EXTRA_SUBJECT, subject);
+        i.putExtra(Intent.EXTRA_TEXT   , message);
+        try {
+            startActivity(Intent.createChooser(i, "Send mail..."));
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(HomeActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void backToLoginScreen() {
@@ -241,7 +284,8 @@ public class HomeActivity extends FragmentActivity
         mMap = map;
         lastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         setUpMap();
-        centerCameraOnCurrentPosition(new LatLng(location.getLatitude(), location.getLongitude()));
+        if(location != null)
+            centerCameraOnCurrentPosition(new LatLng(location.getLatitude(), location.getLongitude()));
     }
 
     private void setUpMap() {
