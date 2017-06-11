@@ -9,10 +9,13 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
@@ -59,6 +62,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -122,6 +127,8 @@ public class HomeActivity extends FragmentActivity
         ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.SEND_SMS}, 1);
+        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
 
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED){return;}
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED){return;}
@@ -151,9 +158,11 @@ public class HomeActivity extends FragmentActivity
                 {
                     SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss / dd-MM-yyyy", Locale.getDefault());
                     String currentDateAndTime = sdf.format(new Date());
+                    String subject = "ExiaPointeuse";
                     String message = Objects.toString(user.getDisplayName()+"\n", "") + getString(R.string.greetings) + "\n" + getString(R.string.checkin) + currentDateAndTime + "\n" + getString(R.string.regards);
 
                     // Code to send SMS
+                    /*
                     if(sendSMS(message)){
                         Snackbar.make(view, getString(R.string.congratulations), Snackbar.LENGTH_LONG)
                                 .setAction("Action", null).show();
@@ -161,9 +170,17 @@ public class HomeActivity extends FragmentActivity
                     else{
                         ActivityCompat.requestPermissions(HomeActivity.this, new String[] {Manifest.permission.SEND_SMS}, 1);
                     }
+                    */
 
                     // Code to send mail
-                    //sendMail("", message);
+                    if(sendMail(subject, message)) {
+                        Snackbar.make(view, getString(R.string.congratulations), Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }
+                    else{
+                        ActivityCompat.requestPermissions(HomeActivity.this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                        ActivityCompat.requestPermissions(HomeActivity.this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                    }
                 }
             }
         });
@@ -182,17 +199,46 @@ public class HomeActivity extends FragmentActivity
         }
     }
 
-    private void sendMail(String subject, String message) {
-        Intent i = new Intent(Intent.ACTION_SEND);
-        i.setType("message/rfc822");
-        i.putExtra(Intent.EXTRA_EMAIL  , new String[]{MAIL});
-        i.putExtra(Intent.EXTRA_SUBJECT, subject);
-        i.putExtra(Intent.EXTRA_TEXT   , message);
-        try {
-            startActivity(Intent.createChooser(i, "Send mail..."));
-        } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(HomeActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
-        }
+    private boolean sendMail(String subject, String message) {
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED){return false;}
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE ) != PackageManager.PERMISSION_GRANTED){return false;}
+        screenshotMap("ExiaPointeuse_" + System.currentTimeMillis() + ".png", subject, message);
+        return true;
+    }
+
+    public void screenshotMap(final String filename, final String subject, final String message){
+        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
+            Bitmap bitmap;
+            String extStorageDirectory = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Screenshots";
+            File file = new File(extStorageDirectory, filename);
+
+            @Override
+            public void onSnapshotReady(Bitmap snapshot) {
+                bitmap = snapshot;
+                try {
+                    FileOutputStream out = new FileOutputStream(file);
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                    out.flush();
+                    out.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Uri path = Uri.fromFile(file);
+                Intent i = new Intent(Intent.ACTION_SEND);
+                i.setType("message/rfc822");
+                i.putExtra(Intent.EXTRA_EMAIL  , new String[]{MAIL});
+                i.putExtra(Intent.EXTRA_SUBJECT, "Subject");
+                i.putExtra(Intent.EXTRA_TEXT   , message);
+                i.putExtra(Intent.EXTRA_STREAM, path);
+                try {
+                    startActivity(Intent.createChooser(i, "Send mail..."));
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(HomeActivity.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+
+        mMap.snapshot(callback);
     }
 
     private void backToLoginScreen() {
@@ -327,7 +373,7 @@ public class HomeActivity extends FragmentActivity
         LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
         if(markerCurrentLocation != null)
             markerCurrentLocation.remove();
-        markerCurrentLocation = mMap.addMarker(new MarkerOptions().position(currentLocation).title(getString(R.string.your_position)));
+        markerCurrentLocation = mMap.addMarker(new MarkerOptions().position(currentLocation).title(getString(R.string.your_position) + " @ " + new SimpleDateFormat("HH:mm:ss / dd-MM-yyyy", Locale.getDefault()).format(new Date())));
         markerCurrentLocation.showInfoWindow();
 
         TextView textViewDistance = (TextView)findViewById(R.id.distance);
